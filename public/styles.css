@@ -97,9 +97,16 @@ a{color:inherit;text-decoration:none}
 /* Arsen-style "press key to reveal" */
 .reveal-wrap{margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .reveal-hint{font-size:12px;display:flex;align-items:center;gap:8px}
+.hint-mobile{display:none}
 .key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:7px;border:1px solid color-mix(in oklab, var(--border) 70%, #fff 30%);
   background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
   color:var(--ink);font-weight:700;font-size:12px}
+
+/* Mobile hint */
+@media (hover: none) and (pointer: coarse){
+  .hint-desktop{display:none}
+  .hint-mobile{display:inline}
+}
 .reveal-email{display:inline-flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;box-shadow:none;backdrop-filter:none}
 .reveal-text{color:var(--ink);letter-spacing:-.01em;filter: blur(9px);opacity:.65;transition: filter 220ms ease, opacity 220ms ease}
 .reveal-wrap.revealed .reveal-text{filter: blur(0);opacity:1}
