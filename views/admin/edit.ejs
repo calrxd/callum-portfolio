@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title><%= project ? 'Edit' : 'New' %> item</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <div class="container narrow">
+    <section class="panel">
+
+    <div class="admin-head">
+      <div>
+        <h1 class="proj-title" style="margin-bottom:6px"><%= project ? 'Edit item' : 'New item' %></h1>
+        <div class="admin-sub muted">
+          <% if (project) { %>
+            <span>id: <%= project.id %></span>
+            <span class="dotsep">·</span>
+            <span>slug: <%= project.slug %></span>
+          <% } else { %>
+            <span>Create a new item across projects / lab / writing / components.</span>
+          <% } %>
+        </div>
+      </div>
+      <div class="ctas" style="margin-top:0">
+        <% if (project) { %>
+          <a class="btn" href="/item/<%= encodeURIComponent(project.slug) %>" target="_blank" rel="noopener">Preview</a>
+        <% } %>
+        <a class="btn" href="/admin">Back</a>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="card" style="margin-top:14px;border-color:color-mix(in oklab, #ff5a6a 55%, var(--border))">
+        <p style="margin:0;color:color-mix(in oklab, #ff5a6a 70%, var(--ink) 30%)"><%= error %></p>
+      </div>
+    <% } %>
+
+    <form method="post" action="<%= project ? ('/admin/edit/' + project.id) : '/admin/new' %>">
+      <div class="card" style="margin-top:14px">
+        <div class="form-grid">
+          <div class="field span-4">
+            <label class="label" for="kind">Type</label>
+            <select id="kind" name="kind" class="select">
+              <% const k = project?.kind || 'project'; %>
+              <option value="project" <%= k==='project' ? 'selected' : '' %>>Project</option>
+              <option value="lab" <%= k==='lab' ? 'selected' : '' %>>Lab</option>
+              <option value="writing" <%= k==='writing' ? 'selected' : '' %>>Writing</option>
+              <option value="component" <%= k==='component' ? 'selected' : '' %>>Component</option>
+            </select>
+          </div>
+
+          <div class="field span-4">
+            <label class="label" for="date">Date (YYYY-MM-DD)</label>
+            <input id="date" name="date" value="<%= project?.date || '' %>" placeholder="2026-01-15" class="input" />
+          </div>
+
+          <div class="field span-7">
+            <label class="label" for="title">Title</label>
+            <input id="title" name="title" value="<%= project?.title || '' %>" class="input" />
+          </div>
+
+          <div class="field span-5">
+            <label class="label" for="slug">Slug</label>
+            <input id="slug" name="slug" value="<%= project?.slug || '' %>" class="input" />
+          </div>
+
+          <div class="field span-12">
+            <label class="label" for="subtitle">Subtitle</label>
+            <input id="subtitle" name="subtitle" value="<%= project?.subtitle || '' %>" class="input" />
+          </div>
+
+          <div class="field span-12">
+            <label class="label" for="summary">Summary</label>
+            <textarea id="summary" name="summary" rows="2" class="textarea"><%= project?.summary || '' %></textarea>
+          </div>
+
+          <div class="field span-4">
+            <label class="label" for="role">Role (projects)</label>
+            <input id="role" name="role" value="<%= project?.role || '' %>" class="input" />
+          </div>
+
+          <div class="field span-4">
+            <label class="label" for="timeframe">Timeframe (projects)</label>
+            <input id="timeframe" name="timeframe" value="<%= project?.timeframe || '' %>" class="input" />
+          </div>
+
+          <div class="field span-4">
+            <label class="label" for="tools">Tools (projects)</label>
+            <input id="tools" name="tools" value="<%= project?.tools || '' %>" class="input" />
+          </div>
+
+          <div class="field span-12">
+            <label class="label" for="external_url">External URL (Lab / links)</label>
+            <input id="external_url" name="external_url" value="<%= project?.external_url || '' %>" placeholder="https://github.com/…" class="input" />
+          </div>
+
+          <div class="field span-12">
+            <label class="label" for="tags">Tags (comma-separated)</label>
+            <input id="tags" name="tags" value="<%= project?.tags || '' %>" class="input" />
+          </div>
+
+          <div class="field span-12">
+            <label class="label" for="body_markdown">Body (Markdown)</label>
+            <div class="admin-md-grid">
+              <div>
+                <textarea id="body_markdown" name="body_markdown" rows="18" class="textarea"><%= project?.body_markdown || '' %></textarea>
+              </div>
+              <div class="admin-md-preview-wrap">
+                <div class="label">Preview</div>
+                <div id="md_preview" class="admin-md-preview content"><div class="muted">Start typing to preview…</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field span-12">
+            <div class="admin-savebar">
+              <label class="check muted"><input type="checkbox" name="published" <%= project?.published ? 'checked' : '' %> /> Published</label>
+              <button class="btn primary" type="submit">Save</button>
+              <% if (project) { %>
+                <a class="btn" href="/item/<%= encodeURIComponent(project.slug) %>" target="_blank" rel="noopener">Preview</a>
+              <% } %>
+              <a class="btn" href="/admin">Back</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <% if (project) { %>
+      <div class="card" style="margin-top:14px">
+        <div class="admin-split">
+          <div>
+            <h3 class="admin-h3">Preview image</h3>
+            <% if (project.hero_image) { %>
+              <img src="<%= project.hero_image %>" class="admin-hero" />
+              <form method="post" action="/admin/remove-hero/<%= project.id %>" onsubmit="return confirm('Remove preview image?');" style="margin:10px 0 0">
+                <button class="btn danger" type="submit">Remove preview</button>
+              </form>
+            <% } else { %>
+              <p class="muted" style="margin:0 0 10px">No preview image yet.</p>
+            <% } %>
+            <form method="post" action="/admin/upload-hero/<%= project.id %>" enctype="multipart/form-data" class="admin-upload">
+              <input type="file" name="hero" accept="image/*" />
+              <button class="btn" type="submit">Upload</button>
+            </form>
+          </div>
+
+          <div>
+            <h3 class="admin-h3">Danger zone</h3>
+            <p class="muted" style="margin:0 0 10px">Delete this item permanently.</p>
+            <form method="post" action="/admin/delete/<%= project.id %>" onsubmit="return confirm('Delete “<%= (project.title || '').replace(/'/g, "\\'") %>”? This cannot be undone.');">
+              <button class="btn danger" type="submit">Delete item</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    </section>
+  </div>
+  <script>
+    (function(){
+      // --- Slug suggestions ---
+      const title = document.getElementById('title');
+      const slug = document.getElementById('slug');
+
+      const slugify = (s) => (s||'')
+        .toLowerCase()
+        .trim()
+        .replace(/['\u0000-\u001f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-]/g, '')
+        .replace(/\-+/g, '-')
+        .replace(/^\-+|\-+$/g, '');
+
+      if(title && slug){
+        let touched = false;
+        slug.addEventListener('input', () => { touched = true; });
+
+        title.addEventListener('input', () => {
+          if (touched) return;
+          if (slug.value.trim()) return;
+          slug.value = slugify(title.value);
+        });
+      }
+
+      // --- Live Markdown preview ---
+      const ta = document.getElementById('body_markdown');
+      const preview = document.getElementById('md_preview');
+      if (!ta || !preview) return;
+
+      let t = null;
+      const render = async () => {
+        try {
+          const r = await fetch('/admin/markdown/preview', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ markdown: ta.value })
+          });
+          const data = await r.json();
+          if (!data || !data.ok) throw new Error('preview failed');
+          preview.innerHTML = data.html || '<div class="muted">(empty)</div>';
+        } catch (e) {
+          preview.innerHTML = '<div class="muted">Preview error</div>';
+        }
+      };
+
+      const schedule = () => {
+        clearTimeout(t);
+        t = setTimeout(render, 220);
+      };
+
+      ta.addEventListener('input', schedule);
+      // initial render
+      render();
+    })();
+  </script>
+</body>
+</html>

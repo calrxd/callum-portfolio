@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>About — <%= name %></title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <div class="container narrow">
+
+    <h1 class="proj-title">About</h1>
+    <p class="sub">
+      I’m <b><%= name %></b>, a UI/UX Designer focused on B2B SaaS. Over the last three years I’ve designed and improved
+      Activ People HR’s platform, with a focus on workflows, design systems, and product polish.
+    </p>
+
+    <h2>What I’m good at</h2>
+    <ul>
+      <li>Design systems & scalable UI</li>
+      <li>Complex workflows (tables, forms, admin tools)</li>
+      <li>Making B2B software feel simple</li>
+    </ul>
+
+    <div class="footer">
+      <div>© <%= new Date().getFullYear() %> <%= name %></div>
+    </div>
+  </div>
+</body>
+</html>

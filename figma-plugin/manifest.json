@@ -1,0 +1,9 @@
+{
+  "name": "Callum Portfolio Generator",
+  "id": "callum-portfolio-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "containsWidget": false
+}

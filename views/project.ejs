@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <% const m = (typeof meta !== 'undefined' && meta) ? meta : null; %>
+  <title><%= (m && m.title) ? m.title : (item.title + ' — ' + name) %></title>
+  <% if (m && m.description) { %><meta name="description" content="<%= m.description %>" /><% } %>
+  <% if (m && m.canonical) { %><link rel="canonical" href="<%= m.canonical %>" /><% } %>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="<%= (m && m.title) ? m.title : (item.title + ' — ' + name) %>" />
+  <% if (m && m.description) { %><meta property="og:description" content="<%= m.description %>" /><% } %>
+  <% if (m && m.canonical) { %><meta property="og:url" content="<%= m.canonical %>" /><% } %>
+  <% if (m && m.ogImage) { %><meta property="og:image" content="<%= m.ogImage %>" /><% } %>
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="/public/styles.css" />
+  <script defer src="/public/main.js"></script>
+</head>
+<body>
+  <div class="container narrow">
+
+    <div class="proj-hero">
+      <div class="meta" style="margin-bottom:10px">
+        <span class="pill"><%= item.kindLabel %></span>
+        <% if (item.date || item.created_at) { %>
+          <span class="dotsep">·</span>
+          <span class="muted"><%= new Date(item.date || item.created_at).toLocaleString('en-GB', { month: 'long', year: 'numeric' }) %></span>
+        <% } %>
+      </div>
+
+      <h1 class="proj-title"><%= item.title %></h1>
+      <% if (item.subtitle) { %>
+        <p class="proj-sub"><%= item.subtitle %></p>
+      <% } %>
+    </div>
+
+    <% if (item.kind === 'project') { %>
+      <div class="kv">
+        <div class="box">
+          <div class="label">Role</div>
+          <div class="val"><%= item.role %></div>
+        </div>
+        <div class="box">
+          <div class="label">Timeframe</div>
+          <div class="val"><%= item.timeframe %></div>
+        </div>
+        <div class="box">
+          <div class="label">Tools</div>
+          <div class="val"><%= item.tools %></div>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (item.hero_image) { %>
+      <img src="<%= item.hero_image %>" alt="" class="hero-img" />
+    <% } %>
+
+    <div class="proj-layout">
+      <aside class="toc" aria-label="Table of contents">
+        <div class="toc-title">On this page</div>
+        <nav class="toc-nav"></nav>
+      </aside>
+
+      <article class="content" data-toc-content>
+        <%- bodyHtml %>
+      </article>
+    </div>
+
+    <hr />
+    <a class="btn" href="/">← Back</a>
+
+    <footer class="footer">
+      <div>© <%= new Date().getFullYear() %> <%= name %></div>
+    </footer>
+  </div>
+</body>
+</html>

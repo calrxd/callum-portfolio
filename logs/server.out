@@ -1,0 +1,20 @@
+Portfolio running on http://localhost:3020
+ReferenceError: /home/callum/.openclaw/workspace/Callum-Portfolio/views/home.ejs:6
+    4|   <meta charset="utf-8" />
+    5|   <meta name="viewport" content="width=device-width,initial-scale=1" />
+ >> 6|   <title><%= (meta?.title || (name + ' — ' + role)) %></title>
+    7|   <% if (meta?.description) { %><meta name="description" content="<%= meta.description %>" /><% } %>
+    8|   <% if (meta?.canonical) { %><link rel="canonical" href="<%= meta.canonical %>" /><% } %>
+    9|   <meta property="og:type" content="website" />
+
+meta is not defined
+    at eval ("/home/callum/.openclaw/workspace/Callum-Portfolio/views/home.ejs":12:27)
+    at home (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/ejs/lib/ejs.js:703:17)
+    at tryHandleCache (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/ejs/lib/ejs.js:274:36)
+    at exports.renderFile [as engine] (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/ejs/lib/ejs.js:491:10)
+    at View.render (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/express/lib/view.js:139:8)
+    at tryRender (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/express/lib/application.js:627:10)
+    at Function.render (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/express/lib/application.js:574:3)
+    at ServerResponse.render (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/express/lib/response.js:923:7)
+    at file:///home/callum/.openclaw/workspace/Callum-Portfolio/src/routes/site.js:133:7
+    at Layer.handleRequest (/home/callum/.openclaw/workspace/Callum-Portfolio/node_modules/router/lib/layer.js:152:17)

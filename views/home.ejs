@@ -1,0 +1,264 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <% const m = (typeof meta !== 'undefined' && meta) ? meta : null; %>
+  <title><%= (m && m.title) ? m.title : (name + ' — ' + role) %></title>
+  <% if (m && m.description) { %><meta name="description" content="<%= m.description %>" /><% } %>
+  <% if (m && m.canonical) { %><link rel="canonical" href="<%= m.canonical %>" /><% } %>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="<%= (m && m.title) ? m.title : (name + ' — ' + role) %>" />
+  <% if (m && m.description) { %><meta property="og:description" content="<%= m.description %>" /><% } %>
+  <% if (m && m.canonical) { %><meta property="og:url" content="<%= m.canonical %>" /><% } %>
+  <% if (m && m.ogImage) { %><meta property="og:image" content="<%= m.ogImage %>" /><% } %>
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="/public/styles.css" />
+  <script defer src="/public/main.js"></script>
+</head>
+<body>
+  <div class="container narrow dock-wrap">
+
+    <nav class="icon-nav" aria-label="Section navigation">
+      <a href="#work" class="icon-btn" data-analytics="nav" data-section="work" aria-label="Work" title="Work">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 7V5a4 4 0 0 1 8 0v2h3a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2h3zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>
+      </a>
+      <a href="#lab" class="icon-btn" data-analytics="nav" data-section="lab" aria-label="Lab" title="Lab">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 2h4v5l5.8 9.6A4 4 0 0 1 16.4 22H7.6a4 4 0 0 1-3.4-5.4L10 7V2zm2 7.6-6 10A2 2 0 0 0 7.6 20h8.8a2 2 0 0 0 1.7-3L12 9.6z"/></svg>
+      </a>
+      <a href="#topics" class="icon-btn" data-analytics="nav" data-section="topics" aria-label="Other topics" title="Other topics">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 4v2h8V8H8zm0 4v2h8v-2H8z"/></svg>
+      </a>
+      <a href="#experience" class="icon-btn" data-analytics="nav" data-section="experience" aria-label="Experience" title="Experience">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5v6h5v-2h-3V7z"/></svg>
+      </a>
+      <a href="#toolkit" class="icon-btn" data-analytics="nav" data-section="toolkit" aria-label="Toolkit" title="Toolkit">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14.6 2 22 9.4l-3.2 3.2-2-2-2.8 2.8 2 2-3.2 3.2L2 10.4 5.2 7.2l2 2L10 6.4l-2-2L11.2 1 14.6 2z"/></svg>
+      </a>
+    </nav>
+
+    <% function iconSvg(label){
+      const key = (label || '').toLowerCase();
+      if (key.includes('github')) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.04c-3.21.7-3.88-1.38-3.88-1.38-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.74 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.52-2.56-.29-5.26-1.28-5.26-5.72 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a10.9 10.9 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.1 0 4.45-2.71 5.42-5.29 5.71.41.36.78 1.07.78 2.16v3.2c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>`;
+      if (key.includes('linkedin')) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5A2.49 2.49 0 0 1 7.5 6a2.5 2.5 0 0 1-5 0A2.5 2.5 0 0 1 4.98 3.5zM3 8.5h4v12H3v-12zm6.5 0h3.8v1.64h.06c.53-1 1.82-2.06 3.74-2.06 4 0 4.74 2.63 4.74 6.05v6.37h-4v-5.65c0-1.35-.03-3.1-1.89-3.1-1.9 0-2.19 1.48-2.19 3v5.75h-4v-12z"/></svg>`;
+      if (key.includes('dribbble')) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.5A10.5 10.5 0 1 0 22.5 12 10.52 10.52 0 0 0 12 1.5zm8.55 9.3a16.7 16.7 0 0 0-7.6.1c-.2-.47-.42-.94-.66-1.4a16.32 16.32 0 0 0 6-4.4 8.96 8.96 0 0 1 2.26 5.6zM12 3a8.97 8.97 0 0 1 5.2 1.66 14.8 14.8 0 0 1-5.45 4.06A39.9 39.9 0 0 0 8.9 4.2 8.93 8.93 0 0 1 12 3zM7.5 5.12a38.3 38.3 0 0 1 2.9 4.46A16.98 16.98 0 0 1 3.7 10 9.02 9.02 0 0 1 7.5 5.12zM3.2 12a9.1 9.1 0 0 1 .04-.86 18.4 18.4 0 0 0 7.85-.65c.23.45.44.91.64 1.37-.2.06-.4.12-.6.2-2.33.75-4.3 2.33-5.62 4.48A8.98 8.98 0 0 1 3.2 12zm8.8 9a8.93 8.93 0 0 1-5.3-1.74c1.06-1.9 2.78-3.33 4.95-4.04.18-.06.36-.11.54-.16A33.3 33.3 0 0 1 12 21zm1.7-.16a35.5 35.5 0 0 0-.74-5.2 15.16 15.16 0 0 1 6.8.64A9.02 9.02 0 0 1 13.7 20.84z"/></svg>`;
+      if (key === 'x' || key.includes('twitter')) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.9 2H21l-6.5 7.4L22 22h-6.6l-5.2-6.6L4.7 22H2.6l7-8L2 2h6.7l4.7 6.1L18.9 2zm-1.2 18h1.2L7.9 3.9H6.6L17.7 20z"/></svg>`;
+      return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17.93V20h-2v-.07A8 8 0 0 1 4.07 13H4v-2h.07A8 8 0 0 1 11 4.07V4h2v.07A8 8 0 0 1 19.93 11H20v2h-.07A8 8 0 0 1 13 19.93z"/></svg>`;
+    } %>
+
+    <div class="social-dock" aria-label="Social links">
+      <% (links || []).forEach(l => { %>
+        <a class="social-ico" href="<%= l.href %>" target="_blank" rel="noreferrer" aria-label="<%= l.label %>">
+          <%- iconSvg(l.label) %>
+        </a>
+      <% }) %>
+    </div>
+
+    <section class="panel">
+      <div class="intro">
+        <img class="avatar" src="/public/avatar.jpg" alt="" />
+        <div>
+          <div class="name"><%= name %></div>
+          <div class="roleline"><%= role %></div>
+        </div>
+      </div>
+
+      <header class="hero">
+        <h1 class="h1" data-animate="hero">
+          Improving <span class="tw" data-words="Products,Workflows,Journeys,Platforms,Solutions">Products</span>
+          <span class="h1-line2">by designing for real people</span>
+        </h1>
+        <!-- tagline removed -->
+        <div class="reveal-wrap" data-email="hey@callumrad.co.uk">
+          <div class="reveal-hint muted">Press <span class="key">R</span> to reveal email</div>
+          <a class="reveal-email" href="#" aria-label="Email address (press R to reveal)">
+            <span class="reveal-text">hey@callumrad.co.uk</span>
+          </a>
+        </div>
+      </header>
+
+      <hr class="sep" />
+
+      <section class="section" style="padding-top:0">
+        <div class="about-block">
+          <% (aboutParas || []).forEach(p => { %>
+            <p class="about-p"><%= p %></p>
+          <% }) %>
+        </div>
+      </section>
+
+      <hr class="section-sep" />
+
+      <section id="work" class="section" style="padding-top:0">
+        <div class="section-head">
+          <h2 class="section-title serif">Work</h2>
+        </div>
+
+        <div class="work-grid">
+          <% (work || []).forEach(p => { %>
+            <a class="work-card" href="<%= p.external_url || ('/project/' + p.slug) %>" <%= p.external_url ? `target="_blank" rel="noreferrer" data-analytics="outbound" data-slug="${p.slug}" data-url="${p.external_url}" data-source="work"` : '' %>>
+              <div class="work-thumb">
+                <% if (p.hero_image) { %>
+                  <img class="work-thumb-img" src="<%= p.hero_image %>" alt="" />
+                <% } else { %>
+                  <span></span>
+                <% } %>
+              </div>
+              <div class="work-title"><%= p.title %></div>
+              <div class="work-desc muted"><%= p.subtitle || p.summary || '' %></div>
+            </a>
+          <% }) %>
+          <% if ((work || []).length === 0) { %>
+            <div class="card" style="grid-column: span 12;">
+              <div style="font-weight:700;margin-bottom:6px">No Work items yet</div>
+              <div class="muted">Log into <a class="underline" href="/admin">Admin</a> to add and publish work.</div>
+            </div>
+          <% } %>
+        </div>
+      </section>
+
+      <hr class="section-sep" />
+
+      <section id="lab" class="section">
+        <div class="section-head">
+          <h2 class="section-title serif">Lab</h2>
+        </div>
+
+        <div class="work-grid">
+          <% (lab || []).forEach(p => { %>
+            <a class="work-card" href="<%= p.external_url || ('/project/' + p.slug) %>" <%= p.external_url ? `target="_blank" rel="noreferrer" data-analytics="outbound" data-slug="${p.slug}" data-url="${p.external_url}" data-source="lab"` : '' %>>
+              <div class="work-thumb">
+                <% if (p.hero_image) { %>
+                  <img class="work-thumb-img" src="<%= p.hero_image %>" alt="" />
+                <% } else { %>
+                  <span></span>
+                <% } %>
+              </div>
+              <div class="work-title"><%= p.title %></div>
+              <div class="work-desc muted"><%= p.subtitle || p.summary || '' %></div>
+            </a>
+          <% }) %>
+          <% if ((lab || []).length === 0) { %>
+            <div class="card" style="grid-column: span 12;">
+              <div style="font-weight:700;margin-bottom:6px">No Lab items yet</div>
+              <div class="muted">Add a new item in Admin and set Type to <b>Lab</b> (use External URL for GitHub links).</div>
+            </div>
+          <% } %>
+        </div>
+      </section>
+
+      <hr class="section-sep" />
+
+      <section id="topics" class="section">
+        <div class="section-head">
+          <h2 class="section-title serif">Other topics</h2>
+        </div>
+
+        <nav class="tabs" aria-label="Topics">
+          <% topics.forEach(t => { %>
+            <a class="tab <%= t.key === activeTopic ? 'active' : '' %>" href="<%= t.href %>">
+              <span><%= t.label %></span>
+              <span class="count"><%= t.count %></span>
+            </a>
+          <% }) %>
+        </nav>
+
+        <div class="feed">
+          <% if (items.length === 0) { %>
+            <div class="card">
+              <h3 style="margin:0 0 6px">No published items yet</h3>
+              <p class="muted" style="margin:0">Log into <a class="underline" href="/admin">Admin</a> to add and publish work.</p>
+            </div>
+          <% } %>
+
+          <% function fmtDate(d){
+              if(!d) return '';
+              const dt = new Date(d);
+              return dt.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+            }
+          %>
+
+          <% items.forEach(it => { %>
+            <a class="feed-item" href="/item/<%= it.slug %>">
+              <div class="feed-thumb" aria-hidden="true"><span></span></div>
+              <div class="feed-main">
+                <div class="meta">
+                  <span class="pill"><%= it.kindLabel %></span>
+                  <span class="dotsep">·</span>
+                  <span class="muted"><%= fmtDate(it.date || it.created_at) %></span>
+                </div>
+                <div class="title"><%= it.title %></div>
+              </div>
+            </a>
+          <% }) %>
+        </div>
+      </section>
+
+      <hr class="section-sep" />
+
+      <section id="experience" class="section timeline">
+        <h2 class="section-title serif">Experience</h2>
+        <div class="timeline-list">
+          <% timeline.forEach(row => { %>
+            <div class="tl-row">
+              <div class="tl-year"><%= row.range %></div>
+              <div class="tl-main">
+                <div class="tl-role"><%= row.title %></div>
+                <div class="tl-org"><%= row.org %></div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+
+      <hr class="section-sep" />
+
+      <section id="toolkit" class="section toolkit">
+        <h2 class="section-title serif">My toolkit</h2>
+        <p class="muted" style="margin:0 0 14px;max-width:70ch">A small set of tools I use to design, prototype, and ship polished UI.</p>
+
+        <% function toolIcon(key){
+          const k = (key||'').toLowerCase();
+          if (k==='figma') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a5 5 0 0 1 0 10H9a3 3 0 1 1 0-6h3a2 2 0 1 0 0-4H9a3 3 0 1 0 0 6H7a5 5 0 1 1 0-10h5z" opacity=".0"/><path fill="currentColor" d="M9 2h6a3 3 0 0 1 0 6H9V2zm0 6h6a3 3 0 0 1 0 6H9V8zm0 6h3a3 3 0 1 1-3 3v-3zm6 0a3 3 0 1 0 0-6h-3v3a3 3 0 0 0 3 3z"/></svg>`;
+          if (k==='adobe') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h7v18H4V3zm9 0h7v18h-7V3zm2.2 14.5 1.4-3.6L18 18h-1.7l-.7-1.8h-2.4l-.7 1.8H11l4.2-10h1.6L21 18h-1.7l-3.1-8.1-1.5 3.8h.5l.6 1.6h-1.3z"/></svg>`;
+          if (k==='tokens') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 20 6.5v11L12 22 4 17.5v-11L12 2zm0 2.3L6 7v10l6 3.4 6-3.4V7l-6-2.7z"/></svg>`;
+          if (k==='prototype') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H7zm4 3 6 4-6 4V8z"/></svg>`;
+          if (k==='framer') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h14v6H12l-2 2h9v8H5v-6h7l2-2H5V4zm2 2v4h10V6H7zm0 10v2h10v-4H9l-2 2z"/></svg>`;
+          if (k==='html') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h16l-1.5 17L12 22l-6.5-2L4 3zm4 4 .3 3.5h7.4l-.2 2H8.6l.3 3.2 3.1 1.1 3.1-1.1.2-2.1H18l-.5 5.7L12 21l-5.5-1.6L5.5 7H8z"/></svg>`;
+          if (k==='ts') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 3h18v18H3V3zm10 8h2v7h-2v-7zm-6 0h6v2H11v5H9v-5H7v-2zm10.8 2.3c.6 0 1.1.2 1.5.6l-1.3 1.2c-.2-.2-.4-.3-.6-.3-.3 0-.5.1-.5.3 0 .2.1.3.5.5l.5.2c1 .4 1.6 1 1.6 2.1 0 1.3-1 2.1-2.5 2.1-1 0-1.8-.4-2.3-1l1.3-1.1c.3.4.6.6 1.1.6.4 0 .7-.2.7-.5 0-.2-.1-.4-.6-.6l-.6-.3c-.9-.4-1.5-.9-1.5-2 0-1.2 1-1.8 2.2-1.8z"/></svg>`;
+          if (k==='components') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v4h14V7a2 2 0 0 0-2-2H7zm12 10H5v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2z"/></svg>`;
+          if (k==='vscode') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.2 2.6 22 5v14l-4.8 2.4-8.6-8.2 8.6-10.6zM7.7 6.3 4 9.2l3.7 2.8-3.7 2.8 3.7 2.9 8.2-7.7-8.2-5.7z"/></svg>`;
+          if (k==='github') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.04c-3.21.7-3.88-1.38-3.88-1.38-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.74 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.52-2.56-.29-5.26-1.28-5.26-5.72 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a10.9 10.9 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.1 0 4.45-2.71 5.42-5.29 5.71.41.36.78 1.07.78 2.16v3.2c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>`;
+          if (k==='notion') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10l2 2v16l-2 2H7l-2-2V5l2-2zm0 2v16h10V5H7zm2 3h2l3 6V8h2v10h-2l-3-6v6H9V8z"/></svg>`;
+          if (k==='linear') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 3a7 7 0 0 1 7 7h-7V5zm-7 7a7 7 0 0 1 7-7v7H5zm7 7a7 7 0 0 1-7-7h7v7zm7-7a7 7 0 0 1-7 7v-7h7z"/></svg>`;
+          if (k==='antigravity') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a8 8 0 0 1 8 8c0 4.4-3.6 12-8 12S4 14.4 4 10a8 8 0 0 1 8-8zm0 3.2A4.8 4.8 0 1 0 16.8 10 4.81 4.81 0 0 0 12 5.2z"/></svg>`;
+          if (k==='openclaw') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 7c0-2.2 2.2-4 5-4s5 1.8 5 4c0 1.7-1.3 3.1-3.1 3.7l2.4 2.4c.5.5.5 1.3 0 1.8l-1.3 1.3c-.5.5-1.3.5-1.8 0l-1.2-1.2-1.2 1.2c-.5.5-1.3.5-1.8 0L7.7 15c-.5-.5-.5-1.3 0-1.8l2.4-2.4C8.3 10.1 7 8.7 7 7zm3 0c0 .9.9 1.7 2 1.7S14 7.9 14 7s-.9-1.7-2-1.7S10 6.1 10 7z"/></svg>`;
+          if (k==='chatgpt') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.7a4.9 4.9 0 0 1 4.8 3.7 4.7 4.7 0 0 1 3 5.9 4.8 4.8 0 0 1-1.8 2.4 4.7 4.7 0 0 1-6.2 6.1 4.8 4.8 0 0 1-3.6.1 4.7 4.7 0 0 1-2.9-5.8 4.8 4.8 0 0 1-1.1-3 4.7 4.7 0 0 1 4.2-4.7A4.9 4.9 0 0 1 12 2.7zm-1.7 6.5-1.6.9.3 1.8 1.9.1.9 1.6-1.2 1.5.9 1.6 1.8-.3.1-1.9 1.6-.9 1.5 1.2 1.6-.9-.3-1.8-1.9-.1-.9-1.6 1.2-1.5-.9-1.6-1.8.3-.1 1.9-1.6.9-1.5-1.2z"/></svg>`;
+          if (k==='loom') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9zm1 5 3-2v12l-3-2V8zm-5 2 4 2v2l-4 2v-6z"/></svg>`;
+          return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17h-2v-2h2v2zm0-4h-2V7h2v8z"/></svg>`;
+        } %>
+
+        <div class="tool-grid flat">
+          <% toolkit.forEach(group => { %>
+            <div class="tool-group">
+              <div class="tool-head"><%= group.title %></div>
+              <div class="tool-list">
+                <% group.items.forEach(it => { %>
+                  <div class="tool-item">
+                    <span class="tool-ico" aria-hidden="true"><%- toolIcon(it.key) %></span>
+                    <span class="tool-label"><%= it.label %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <div>© <%= new Date().getFullYear() %></div>
+    </footer>
+  </div>
+</body>
+</html>

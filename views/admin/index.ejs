@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <div class="container narrow">
+    <section class="panel">
+
+    <% const currentKind = (filters?.kind || 'all'); %>
+    <% const q = (filters?.q || ''); %>
+    <% const redirectUrl = `/admin?kind=${encodeURIComponent(currentKind)}&q=${encodeURIComponent(q)}`; %>
+
+    <div class="admin-head">
+      <div>
+        <h1 class="proj-title" style="margin-bottom:6px">Admin</h1>
+        <div class="admin-sub muted">
+          <span><%= counts?.totals?.total || 0 %> total</span>
+          <span class="dotsep">·</span>
+          <span><%= counts?.totals?.published || 0 %> published</span>
+          <span class="dotsep">·</span>
+          <span><%= counts?.totals?.draft || 0 %> drafts</span>
+        </div>
+      </div>
+      <div class="ctas" style="margin-top:0">
+        <a class="btn" href="/admin/reports">Reports</a>
+        <a class="btn primary" href="/admin/new">New item</a>
+        <form method="post" action="/auth/logout">
+          <button class="btn" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="admin-widgets" style="margin-top:14px">
+      <div class="admin-widget">
+        <div class="muted">Home views</div>
+        <div class="widget-num"><%= stats?.homeViews ?? 0 %></div>
+      </div>
+      <div class="admin-widget">
+        <div class="muted">Item views</div>
+        <div class="widget-num"><%= stats?.itemViewsTotal ?? 0 %></div>
+      </div>
+      <div class="admin-widget">
+        <div class="muted">Outbound clicks</div>
+        <div class="widget-num"><%= stats?.outboundTotal ?? 0 %></div>
+      </div>
+      <div class="admin-widget">
+        <div class="muted">Top item</div>
+        <% if (stats?.topItem) { %>
+          <div class="widget-title"><%= stats.topItem.title %></div>
+          <div class="muted" style="margin-top:4px"><%= stats.topItem.count %> views</div>
+        <% } else { %>
+          <div class="muted" style="margin-top:6px">No data yet</div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="admin-toolbar">
+        <form method="get" action="/admin" class="admin-search">
+          <input type="hidden" name="kind" value="<%= currentKind %>" />
+          <label class="sr-only" for="q">Search</label>
+          <input id="q" name="q" value="<%= q %>" placeholder="Search title or slug…" class="input" />
+          <button class="btn" type="submit">Search</button>
+          <% if (q) { %>
+            <a class="btn" href="/admin?kind=<%= encodeURIComponent(currentKind) %>">Clear</a>
+          <% } %>
+        </form>
+
+        <div class="admin-kinds" role="tablist" aria-label="Filter by kind">
+          <% const kinds = [
+            { key: 'all', label: 'All', total: (counts?.totals?.total || 0) },
+            { key: 'project', label: 'Projects', total: (counts?.byKind?.project?.total || 0) },
+            { key: 'lab', label: 'Lab', total: (counts?.byKind?.lab?.total || 0) },
+            { key: 'writing', label: 'Writing', total: (counts?.byKind?.writing?.total || 0) },
+            { key: 'component', label: 'Components', total: (counts?.byKind?.component?.total || 0) },
+          ]; %>
+          <% kinds.forEach(k => { %>
+            <a
+              class="tab <%= currentKind === k.key ? 'active' : '' %>"
+              href="/admin?kind=<%= encodeURIComponent(k.key) %>&q=<%= encodeURIComponent(q) %>"
+              role="tab"
+              aria-selected="<%= currentKind === k.key ? 'true' : 'false' %>"
+            >
+              <span><%= k.label %></span>
+              <span class="count"><%= k.total %></span>
+            </a>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-list" style="margin-top:12px">
+      <% if (!projects || projects.length === 0) { %>
+        <div class="card">
+          <p class="muted" style="margin:0">No items match your filters.</p>
+        </div>
+      <% } %>
+
+      <% (projects || []).forEach(p => { %>
+        <div class="admin-row">
+          <a class="admin-main" href="/admin/edit/<%= p.id %>">
+            <div class="meta">
+              <span class="pill"><%= (p.kind || 'project') %></span>
+              <span class="pill <%= p.published ? 'pill-ok' : 'pill-warn' %>"><%= p.published ? 'published' : 'draft' %></span>
+              <span class="dotsep">·</span>
+              <span class="muted">slug: <%= p.slug %></span>
+            </div>
+            <div class="title"><%= p.title %></div>
+            <div class="desc">
+              updated: <%= p.updated_at %>
+              <% if (p.date) { %> — date: <%= p.date %><% } %>
+            </div>
+          </a>
+
+          <div class="admin-actions">
+            <form method="post" action="/admin/toggle-publish/<%= p.id %>">
+              <input type="hidden" name="redirect" value="<%= redirectUrl %>" />
+              <button class="switch <%= p.published ? 'on' : '' %>" type="submit" aria-label="Toggle publish">
+                <span class="switch-dot"></span>
+              </button>
+            </form>
+
+            <a class="btn" href="/admin/edit/<%= p.id %>">Edit</a>
+            <a class="btn" href="/item/<%= encodeURIComponent(p.slug) %>" target="_blank" rel="noopener">Preview</a>
+
+            <form method="post" action="/admin/delete/<%= p.id %>" onsubmit="return confirm('Delete “<%= (p.title || '').replace(/'/g, "\\'") %>”? This cannot be undone.');">
+              <button class="btn danger" type="submit">Delete</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+    </section>
+  </div>
+</body>
+</html>
