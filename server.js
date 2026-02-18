@@ -65,6 +65,14 @@ app.use(
   })
 );
 
+// Local vendor assets (avoid external CDNs)
+app.use(
+  "/vendor/mermaid",
+  express.static(path.join(__dirname, "node_modules", "mermaid", "dist"), {
+    maxAge: process.env.NODE_ENV === "production" ? "30d" : 0,
+  })
+);
+
 initDb();
 
 app.use("/auth", authRouter);

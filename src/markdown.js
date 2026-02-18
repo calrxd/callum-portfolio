@@ -8,6 +8,11 @@ export function renderMarkdown(md) {
 
   const clean = sanitizeHtml(raw, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+      // layout / semantic wrappers (for discovery boards etc.)
+      "div",
+      "section",
+      "span",
+      // content
       "img",
       "h1",
       "h2",

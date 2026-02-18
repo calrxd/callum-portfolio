@@ -75,8 +75,7 @@
             { key: 'all', label: 'All', total: (counts?.totals?.total || 0) },
             { key: 'project', label: 'Projects', total: (counts?.byKind?.project?.total || 0) },
             { key: 'lab', label: 'Lab', total: (counts?.byKind?.lab?.total || 0) },
-            { key: 'writing', label: 'Writing', total: (counts?.byKind?.writing?.total || 0) },
-            { key: 'component', label: 'Components', total: (counts?.byKind?.component?.total || 0) },
+            { key: 'other', label: 'Other Topics', total: (counts?.byKind?.other?.total || 0) },
           ]; %>
           <% kinds.forEach(k => { %>
             <a
@@ -93,6 +92,44 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:12px">
+      <h3 class="admin-h3" style="margin:0 0 10px">Other Topics categories</h3>
+      <p class="muted" style="margin:0 0 12px">These power the category dropdown when creating “Other Topics” items.</p>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <% (otherTopicCategories || []).forEach(c => { %>
+          <div class="pill" style="display:flex; align-items:center; gap:8px">
+            <span><strong><%= c.label %></strong></span>
+            <span class="muted">(<%= c.key %>)</span>
+            <form method="post" action="/admin/other-topics/categories/delete/<%= encodeURIComponent(c.key) %>" style="margin:0">
+              <button class="btn danger" type="submit" style="padding:6px 10px">Delete</button>
+            </form>
+          </div>
+        <% }) %>
+      </div>
+
+      <form method="post" action="/admin/other-topics/categories/add" style="margin-top:12px">
+        <div class="form-grid" style="margin:0">
+          <div class="field span-4">
+            <label class="label" for="cat_key">Key</label>
+            <input id="cat_key" name="key" placeholder="e.g. accessibility" class="input" />
+            <div class="muted" style="margin-top:6px">a-z, 0-9, hyphen</div>
+          </div>
+          <div class="field span-5">
+            <label class="label" for="cat_label">Label</label>
+            <input id="cat_label" name="label" placeholder="e.g. Accessibility" class="input" />
+          </div>
+          <div class="field span-2">
+            <label class="label" for="cat_order">Order</label>
+            <input id="cat_order" name="order_index" placeholder="40" class="input" />
+          </div>
+          <div class="field span-1" style="display:flex; align-items:flex-end">
+            <button class="btn" type="submit">Add</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
     <div class="admin-list" style="margin-top:12px">
       <% if (!projects || projects.length === 0) { %>
         <div class="card">
@@ -105,6 +142,9 @@
           <a class="admin-main" href="/admin/edit/<%= p.id %>">
             <div class="meta">
               <span class="pill"><%= (p.kind || 'project') %></span>
+              <% if (p.kind === 'other' && p.category) { %>
+                <span class="pill"><%= p.category %></span>
+              <% } %>
               <span class="pill <%= p.published ? 'pill-ok' : 'pill-warn' %>"><%= p.published ? 'published' : 'draft' %></span>
               <span class="dotsep">·</span>
               <span class="muted">slug: <%= p.slug %></span>

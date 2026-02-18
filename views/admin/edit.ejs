@@ -19,7 +19,7 @@
             <span class="dotsep">·</span>
             <span>slug: <%= project.slug %></span>
           <% } else { %>
-            <span>Create a new item across projects / lab / writing / components.</span>
+            <span>Create a new item across projects / lab / other topics.</span>
           <% } %>
         </div>
       </div>
@@ -37,17 +37,34 @@
       </div>
     <% } %>
 
+    <% const rawKind = (project?.kind || 'project'); %>
+    <% const kindGroup = (rawKind === 'other') ? 'other' : rawKind; %>
+    <% const categories = (otherTopicCategories || []); %>
+    <% const categoryValue = String(project?.category || categories?.[0]?.key || ''); %>
+
     <form method="post" action="<%= project ? ('/admin/edit/' + project.id) : '/admin/new' %>">
       <div class="card" style="margin-top:14px">
         <div class="form-grid">
+
           <div class="field span-4">
-            <label class="label" for="kind">Type</label>
-            <select id="kind" name="kind" class="select">
-              <% const k = project?.kind || 'project'; %>
-              <option value="project" <%= k==='project' ? 'selected' : '' %>>Project</option>
-              <option value="lab" <%= k==='lab' ? 'selected' : '' %>>Lab</option>
-              <option value="writing" <%= k==='writing' ? 'selected' : '' %>>Writing</option>
-              <option value="component" <%= k==='component' ? 'selected' : '' %>>Component</option>
+            <label class="label" for="kind_group">Type</label>
+            <select id="kind_group" name="kind_group" class="select">
+              <option value="project" <%= kindGroup==='project' ? 'selected' : '' %>>Project</option>
+              <option value="lab" <%= kindGroup==='lab' ? 'selected' : '' %>>Lab</option>
+              <option value="other" <%= kindGroup==='other' ? 'selected' : '' %>>Other Topics</option>
+            </select>
+          </div>
+
+          <div class="field span-4" id="category_wrap">
+            <label class="label" for="category">Category (Other Topics)</label>
+            <select id="category" name="category" class="select">
+              <% if (!categories || categories.length === 0) { %>
+                <option value="">(no categories yet)</option>
+              <% } else { %>
+                <% categories.forEach(c => { %>
+                  <option value="<%= c.key %>" <%= String(c.key)===categoryValue ? 'selected' : '' %>><%= c.label %></option>
+                <% }) %>
+              <% } %>
             </select>
           </div>
 
@@ -162,6 +179,20 @@
   </div>
   <script>
     (function(){
+      // --- Other Topics UI toggle ---
+      const kindGroup = document.getElementById('kind_group');
+      const catWrap = document.getElementById('category_wrap');
+
+      const syncCategoryVisibility = () => {
+        const show = kindGroup && kindGroup.value === 'other';
+        if (catWrap) catWrap.style.display = show ? '' : 'none';
+      };
+
+      if (kindGroup) {
+        kindGroup.addEventListener('change', syncCategoryVisibility);
+        syncCategoryVisibility();
+      }
+
       // --- Slug suggestions ---
       const title = document.getElementById('title');
       const slug = document.getElementById('slug');
@@ -169,7 +200,7 @@
       const slugify = (s) => (s||'')
         .toLowerCase()
         .trim()
-        .replace(/['\u0000-\u001f]/g, '')
+        .replace(/[\'\u0000-\u001f]/g, '')
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9\-]/g, '')
         .replace(/\-+/g, '-')

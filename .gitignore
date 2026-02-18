@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# environment
+.env
+
+# logs
+logs/
+*.log
+
+# uploads (user content)
+uploads/
+
+# sqlite wal/shm transient files
+*.sqlite-wal
+*.sqlite-shm
+
+# backups
+*.bak-*
+
+# OS
+.DS_Store

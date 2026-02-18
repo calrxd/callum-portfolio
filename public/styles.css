@@ -8,6 +8,97 @@
   --border: #1a2728;
   --shadow: 0 18px 50px rgba(0,0,0,.55);
   --radius: 18px;
+
+  /* Activ People HR UI Kit (scoped token names) */
+
+  /* Default / Grey */
+  --rk-grey-50:  #f9fafb;
+  --rk-grey-100: #f3f4f6;
+  --rk-grey-200: #e5e7eb;
+  --rk-grey-300: #d1d5db;
+  --rk-grey-400: #9ca3af;
+  --rk-grey-500: #6b7280;
+  --rk-grey-600: #4b5563;
+  --rk-grey-700: #374151;
+  --rk-grey-800: #1f2937;
+  --rk-grey-900: #111827;
+  --rk-grey-950: #030712;
+
+  /* Primary */
+  --rk-primary-50:  #f0f9f9;
+  --rk-primary-100: #e5f5f4;
+  --rk-primary-200: #c4e8e5;
+  --rk-primary-300: #a3dbd7;
+  --rk-primary-400: #78ccc5;
+  --rk-primary-500: #47b8af;
+  --rk-primary-600: #40a99d;
+  --rk-primary-700: #379088;
+  --rk-primary-800: #2d7670;
+  --rk-primary-900: #225854;
+  --rk-primary-950: #1f313b;
+
+  /* Secondary */
+  --rk-secondary-50:  #f6f3ff;
+  --rk-secondary-100: #eee9ff;
+  --rk-secondary-200: #ddd5ff;
+  --rk-secondary-300: #c7b4ff;
+  --rk-secondary-400: #aa86ff;
+  --rk-secondary-500: #8a55ff;
+  --rk-secondary-600: #6e35f0;
+  --rk-secondary-700: #5520ce;
+  --rk-secondary-800: #4019a0;
+
+  /* Info */
+  --rk-info-50:  #eff6ff;
+  --rk-info-100: #dbeafe;
+  --rk-info-200: #bfdbfe;
+  --rk-info-300: #93c5fd;
+  --rk-info-400: #60a5fa;
+  --rk-info-500: #3b82f6;
+  --rk-info-600: #2563eb;
+  --rk-info-700: #1d4ed8;
+  --rk-info-800: #1e40af;
+  --rk-info-900: #1e3a8a;
+  --rk-info-950: #172554;
+
+  /* Success */
+  --rk-success-50:  #f0fdf4;
+  --rk-success-100: #dcfce7;
+  --rk-success-200: #bbf7d0;
+  --rk-success-300: #86efac;
+  --rk-success-400: #4ade80;
+  --rk-success-500: #22c55e;
+  --rk-success-600: #16a34a;
+  --rk-success-700: #15803d;
+  --rk-success-800: #166534;
+  --rk-success-900: #14532d;
+  --rk-success-950: #052e16;
+
+  /* Warning */
+  --rk-warning-50:  #fffbeb;
+  --rk-warning-100: #fef3c7;
+  --rk-warning-200: #fde68a;
+  --rk-warning-300: #fcd34d;
+  --rk-warning-400: #fbbf24;
+  --rk-warning-500: #f59e0b;
+  --rk-warning-600: #d97706;
+  --rk-warning-700: #b45309;
+  --rk-warning-800: #854d0e;
+  --rk-warning-900: #713f12;
+  --rk-warning-950: #422006;
+
+  /* Error */
+  --rk-error-50:  #fef2f2;
+  --rk-error-100: #fee2e2;
+  --rk-error-200: #fecaca;
+  --rk-error-300: #fca5a5;
+  --rk-error-400: #f87171;
+  --rk-error-500: #ef4444;
+  --rk-error-600: #dc2626;
+  --rk-error-700: #b91c1c;
+  --rk-error-800: #991b1b;
+  --rk-error-900: #7f1d1d;
+  --rk-error-950: #450a0a;
 }
 
 /* Optional: if you ever want light mode later */
@@ -290,6 +381,9 @@ html{scroll-behavior:smooth}
 .proj-hero{margin:18px 0 18px}
 .proj-title{font-size:34px;letter-spacing:-.8px;margin:0}
 .proj-sub{color:var(--muted);margin:8px 0 0;line-height:1.6}
+
+/* Back button at top of project pages */
+.back-top{margin:10px 0 0}
 .kv{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin:18px 0 22px}
 .kv .box{grid-column:span 4;border:1px solid var(--border);border-radius:14px;padding:14px;background:color-mix(in oklab, var(--card) 88%, #fff 12%)}
 .kv .label{font-size:12px;color:var(--muted);margin-bottom:8px}
@@ -307,6 +401,234 @@ html{scroll-behavior:smooth}
 .content h3{margin-top:18px; scroll-margin-top: 18px;}
 .content p, .content li{line-height:1.7;color:color-mix(in oklab, var(--ink) 92%, #fff 8%)}
 .content a{ text-decoration: underline; text-underline-offset: 3px; }
+
+/* Markdown lists */
+.content ul,
+.content ol{
+  margin: 10px 0 18px;
+  padding-left: 1.2em;
+}
+.content li{margin:6px 0}
+
+/* Markdown images */
+.content img{
+  display:block;
+  max-width:100%;
+  height:auto;
+  border-radius:18px;
+  border:1px solid var(--border);
+  margin:12px 0 18px;
+}
+
+/* Keep very tall exports readable within the container */
+.content p > img{
+  max-height:560px;
+  object-fit:contain;
+}
+
+/* =====================
+   Sticky note boards (Other Topics: discovery / notes)
+   ===================== */
+
+.spBoard{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 14px 0 22px;
+}
+
+.spPanel{
+  border-radius: 22px;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, #fff 30%);
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  padding: 16px;
+}
+
+.spPanelHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.spPanelTitle{
+  font-weight: 720;
+  letter-spacing: -.2px;
+  margin: 0;
+}
+
+.spStack{
+  display:grid;
+  gap: 10px;
+}
+
+.spNoteGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 560px){
+  .spNoteGrid{ grid-template-columns: 1fr; }
+}
+
+.spNote{
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid color-mix(in oklab, var(--border) 68%, #fff 32%);
+  box-shadow: 0 14px 40px rgba(0,0,0,.25);
+  background: radial-gradient(700px 220px at 12% 10%, rgba(255,255,255,.18), rgba(255,255,255,.06));
+}
+
+.spNoteTitle{ margin: 0 0 6px 0; font-weight: 720; font-size: 14px; }
+.spNoteText{ margin: 0; color: color-mix(in oklab, var(--muted) 72%, var(--ink) 28%); font-size: 13px; line-height: 1.65; }
+
+/* Diagram container (Mermaid) */
+.spDiagram{
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, #fff 30%);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  margin: 12px 0 18px;
+}
+.spDiagramScroll{
+  max-height: 70vh;
+  overflow: auto;
+  padding: 12px;
+}
+.spDiagramScroll svg{ max-width: none; height: auto; }
+
+/* Tones */
+.spToneBlue{ background: radial-gradient(900px 260px at 10% 10%, rgba(110,198,255,.18), rgba(255,255,255,.03)); }
+.spTonePurple{ background: radial-gradient(900px 260px at 10% 10%, rgba(180,120,255,.16), rgba(255,255,255,.03)); }
+.spToneGreen{ background: radial-gradient(900px 260px at 10% 10%, rgba(125,235,170,.16), rgba(255,255,255,.03)); }
+.spToneYellow{ background: radial-gradient(900px 260px at 10% 10%, rgba(255,214,120,.18), rgba(255,255,255,.03)); }
+
+.spToneBlue .spNote{ background: linear-gradient(180deg, rgba(110,198,255,.14), rgba(255,255,255,.03)); }
+.spTonePurple .spNote{ background: linear-gradient(180deg, rgba(180,120,255,.12), rgba(255,255,255,.03)); }
+.spToneGreen .spNote{ background: linear-gradient(180deg, rgba(125,235,170,.12), rgba(255,255,255,.03)); }
+.spToneYellow .spNote{ background: linear-gradient(180deg, rgba(255,214,120,.14), rgba(255,255,255,.03)); }
+
+
+/* =====================
+   Activ People HR UI Kit — Color palette blocks
+   ===================== */
+.rkColors{
+  margin: 14px 0 20px;
+}
+.rkColors .rkLead{
+  margin: 0 0 16px 0;
+  color: color-mix(in oklab, var(--muted) 78%, var(--ink) 22%);
+  line-height: 1.7;
+}
+
+.rkPalette{
+  border: 1px solid color-mix(in oklab, var(--border) 70%, #fff 30%);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  padding: 16px;
+  margin: 16px 0;
+}
+.rkPaletteTitle{
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  letter-spacing: -.2px;
+}
+.rkPaletteSub{
+  margin: -6px 0 12px 0;
+  color: color-mix(in oklab, var(--muted) 82%, var(--ink) 18%);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rkSwatchGrid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 560px){
+  .rkSwatchGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.rkSwatch{
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--border) 72%, #fff 28%);
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  padding: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.rkDot{
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 18px 55px rgba(0,0,0,.40);
+  flex: 0 0 auto;
+}
+.rkSwatchMeta{min-width:0}
+.rkSwatchNum{
+  font-weight: 750;
+  font-size: 14px;
+  letter-spacing: -.2px;
+  line-height: 1.1;
+}
+.rkSwatchVar{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--muted) 80%, var(--ink) 20%);
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.rkSemanticGrid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 560px){
+  .rkSemanticGrid{ grid-template-columns: 1fr; }
+}
+
+.rkSemantic{
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--border) 72%, #fff 28%);
+  background: radial-gradient(900px 250px at 10% 10%, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rkSemanticName{font-weight: 700; letter-spacing:-.2px}
+.rkSemanticVar{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--muted) 80%, var(--ink) 20%);
+  margin-top: 4px;
+}
+
+/* Typography scale block (Calendar UI) */
+.typographyScale{
+  border:1px solid color-mix(in oklab, var(--border) 70%, #fff 30%);
+  border-radius:18px;
+  padding:14px;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow:0 18px 60px rgba(0,0,0,.25);
+  margin:12px 0 18px;
+}
+.tsRow{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:baseline;padding:10px 0;border-top:1px solid rgba(255,255,255,.06)}
+.tsRow:first-child{border-top:0;padding-top:0}
+.tsMeta{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tsSample{color:color-mix(in oklab, var(--ink) 92%, #fff 8%)}
+.tsDisplay{font-size:28px;line-height:1.1;font-family:ui-serif,Georgia,"Times New Roman",Times,serif;font-weight:520}
+.tsH2{font-size:20px;line-height:1.25;font-weight:650}
+.tsBody{font-size:14px;line-height:1.55;color:color-mix(in oklab, var(--muted) 72%, var(--ink) 28%)}
+.tsLabel{font-size:12px;line-height:1.2;font-weight:650;color:color-mix(in oklab, var(--muted) 75%, var(--ink) 25%)}
+@media (max-width: 560px){
+  .tsRow{grid-template-columns:1fr;gap:6px}
+}
 
 /* TOC (floating top-right) */
 .toc{

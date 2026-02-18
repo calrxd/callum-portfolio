@@ -56,9 +56,31 @@ function normalizeKind(kind) {
   if (["", "all"].includes(k)) return "all";
   if (["projects", "project"].includes(k)) return "project";
   if (["labs", "lab"].includes(k)) return "lab";
-  if (["writing", "post", "posts"].includes(k)) return "writing";
-  if (["component", "components"].includes(k)) return "component";
+  if (["other", "other-topics", "other_topics"].includes(k)) return "other";
   return "all";
+}
+
+function loadOtherTopicCategories(db) {
+  return db
+    .prepare(
+      `select key, label, order_index
+       from other_topic_categories
+       order by order_index asc, label asc`
+    )
+    .all();
+}
+
+function resolveKindCategoryFromForm(db, body) {
+  const kindGroup = String(body?.kind_group || body?.kind || "project").toLowerCase();
+  if (kindGroup === "other") {
+    const categories = loadOtherTopicCategories(db);
+    const catKey = String(body?.category || body?.kind_category || "").toLowerCase();
+    const valid = categories.some((c) => c.key === catKey);
+    return { kind: "other", category: valid ? catKey : (categories[0]?.key || "") };
+  }
+
+  if (["project", "lab"].includes(kindGroup)) return { kind: kindGroup, category: "" };
+  return { kind: "project", category: "" };
 }
 
 adminRouter.get("/", (req, res) => {
@@ -68,7 +90,7 @@ adminRouter.get("/", (req, res) => {
 
   const where = ["1=1"];
   const params = [];
-  if (["project", "lab", "writing", "component"].includes(kind)) {
+  if (["project", "lab", "other"].includes(kind)) {
     where.push("kind=?");
     params.push(kind);
   }
@@ -79,7 +101,7 @@ adminRouter.get("/", (req, res) => {
 
   const projects = db
     .prepare(
-      `select id,slug,title,kind,published,updated_at,created_at,date
+      `select id,slug,title,kind,category,published,updated_at,created_at,date
        from projects
        where ${where.join(" and ")}
        order by coalesce(date, updated_at, created_at) desc`
@@ -132,6 +154,8 @@ adminRouter.get("/", (req, res) => {
     )
     .get();
 
+  const categories = loadOtherTopicCategories(db);
+
   res.render("admin/index", {
     projects,
     filters: { kind, q },
@@ -142,7 +166,50 @@ adminRouter.get("/", (req, res) => {
       outboundTotal,
       topItem: topItem || null,
     },
+    otherTopicCategories: categories,
   });
+});
+
+adminRouter.post("/other-topics/categories/add", (req, res) => {
+  const db = getDb();
+  const key = String(req.body?.key || "").trim().toLowerCase();
+  const label = String(req.body?.label || "").trim();
+  const order = Number(req.body?.order_index || 0);
+
+  if (!key || !/^[a-z0-9\-]+$/.test(key)) {
+    return res.status(400).send("Invalid key (use a-z, 0-9, hyphen)");
+  }
+  if (!label) return res.status(400).send("Missing label");
+
+  try {
+    db.prepare(
+      "insert into other_topic_categories (key,label,order_index) values (?,?,?)"
+    ).run(key, label, Number.isFinite(order) ? order : 0);
+  } catch (e) {
+    return res.status(400).send(String(e));
+  }
+
+  res.redirect("/admin");
+});
+
+adminRouter.post("/other-topics/categories/delete/:key", (req, res) => {
+  const db = getDb();
+  const key = String(req.params.key || "").toLowerCase();
+
+  const used = db
+    .prepare(
+      "select count(*) as c from projects where kind='other' and category=?"
+    )
+    .get(key)?.c;
+
+  if (used > 0) {
+    return res
+      .status(400)
+      .send(`Category is in use by ${used} item(s). Change those first.`);
+  }
+
+  db.prepare("delete from other_topic_categories where key=?").run(key);
+  res.redirect("/admin");
 });
 
 adminRouter.get("/reports", (req, res) => {
@@ -207,12 +274,16 @@ adminRouter.post("/markdown/preview", (req, res) => {
 });
 
 adminRouter.get("/new", (req, res) => {
-  res.render("admin/edit", { project: null, error: null });
+  const db = getDb();
+  const categories = loadOtherTopicCategories(db);
+  res.render("admin/edit", { project: null, error: null, otherTopicCategories: categories });
 });
 
 adminRouter.post("/new", (req, res) => {
   const db = getDb();
   const now = new Date().toISOString();
+  const kc = resolveKindCategoryFromForm(db, req.body);
+
   const p = {
     slug: req.body.slug,
     title: req.body.title,
@@ -226,7 +297,8 @@ adminRouter.post("/new", (req, res) => {
     external_url: req.body.external_url || "",
     body_markdown: req.body.body_markdown || "",
     published: req.body.published ? 1 : 0,
-    kind: req.body.kind || "project",
+    kind: kc.kind,
+    category: kc.category,
     date: req.body.date || "",
     created_at: now,
     updated_at: now,
@@ -234,12 +306,13 @@ adminRouter.post("/new", (req, res) => {
 
   try {
     db.prepare(
-      `insert into projects (slug,title,subtitle,summary,role,timeframe,tools,tags,hero_image,external_url,body_markdown,published,created_at,updated_at,kind,date)
-       values (@slug,@title,@subtitle,@summary,@role,@timeframe,@tools,@tags,@hero_image,@external_url,@body_markdown,@published,@created_at,@updated_at,@kind,@date)`
+      `insert into projects (slug,title,subtitle,summary,role,timeframe,tools,tags,hero_image,external_url,body_markdown,published,created_at,updated_at,kind,category,date)
+       values (@slug,@title,@subtitle,@summary,@role,@timeframe,@tools,@tags,@hero_image,@external_url,@body_markdown,@published,@created_at,@updated_at,@kind,@category,@date)`
     ).run(p);
     res.redirect("/admin");
   } catch (e) {
-    res.status(400).render("admin/edit", { project: p, error: String(e) });
+    const categories = loadOtherTopicCategories(db);
+    res.status(400).render("admin/edit", { project: p, error: String(e), otherTopicCategories: categories });
   }
 });
 
@@ -249,13 +322,17 @@ adminRouter.get("/edit/:id", (req, res) => {
     .prepare("select * from projects where id=?")
     .get(req.params.id);
   if (!project) return res.status(404).render("404");
-  res.render("admin/edit", { project, error: null });
+
+  const categories = loadOtherTopicCategories(db);
+  res.render("admin/edit", { project, error: null, otherTopicCategories: categories });
 });
 
 adminRouter.post("/edit/:id", (req, res) => {
   const db = getDb();
   const now = new Date().toISOString();
   const id = Number(req.params.id);
+  const kc = resolveKindCategoryFromForm(db, req.body);
+
   const p = {
     id,
     slug: req.body.slug,
@@ -269,7 +346,8 @@ adminRouter.post("/edit/:id", (req, res) => {
     external_url: req.body.external_url || "",
     body_markdown: req.body.body_markdown || "",
     published: req.body.published ? 1 : 0,
-    kind: req.body.kind || "project",
+    kind: kc.kind,
+    category: kc.category,
     date: req.body.date || "",
     updated_at: now,
   };
@@ -279,14 +357,15 @@ adminRouter.post("/edit/:id", (req, res) => {
       `update projects set
         slug=@slug,title=@title,subtitle=@subtitle,summary=@summary,role=@role,timeframe=@timeframe,
         tools=@tools,tags=@tags,external_url=@external_url,body_markdown=@body_markdown,published=@published,updated_at=@updated_at,
-        kind=@kind,date=@date
+        kind=@kind,category=@category,date=@date
        where id=@id`
     ).run(p);
     res.redirect("/admin");
   } catch (e) {
+    const categories = loadOtherTopicCategories(db);
     res
       .status(400)
-      .render("admin/edit", { project: { ...req.body, id }, error: String(e) });
+      .render("admin/edit", { project: { ...req.body, id }, error: String(e), otherTopicCategories: categories });
   }
 });
 

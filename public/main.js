@@ -126,6 +126,63 @@
       .replace(/[^a-z0-9\-]/g, '')
       .replace(/\-+/g, '-');
 
+  // --- Mermaid diagrams (flowcharts in markdown) ---
+  const renderMermaid = async () => {
+    const mermaid = window.mermaid;
+    if (!mermaid) return;
+
+    const blocks = Array.from(document.querySelectorAll('pre > code.language-mermaid'));
+    if (!blocks.length) return;
+
+    try {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'strict',
+        flowchart: { curve: 'basis' },
+      });
+    } catch {
+      // ignore init errors
+    }
+
+    for (const [idx, codeEl] of blocks.entries()) {
+      const pre = codeEl.parentElement;
+      if (!pre) continue;
+      if (pre.getAttribute('data-mermaid-rendered') === '1') continue;
+      pre.setAttribute('data-mermaid-rendered', '1');
+
+      const src = (codeEl.textContent || '').trim();
+      if (!src) continue;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'spDiagram';
+
+      const scroll = document.createElement('div');
+      scroll.className = 'spDiagramScroll';
+      wrap.appendChild(scroll);
+
+      pre.replaceWith(wrap);
+
+      const id = `mmd-${Date.now()}-${idx}`;
+
+      try {
+        const out = await mermaid.render(id, src);
+        const svg = out?.svg || '';
+        if (!svg) throw new Error('empty svg');
+        scroll.innerHTML = svg;
+      } catch (e) {
+        const msg = (e && (e.message || String(e))) ? (e.message || String(e)) : 'unknown error';
+        scroll.innerHTML = `<div class="muted">Diagram failed to render: ${String(msg).replace(/</g,'&lt;')}</div>`;
+        // also log to console for debugging
+        try { console.warn('mermaid render failed', e, { src }); } catch {}
+      }
+    }
+  };
+
+  // Mermaid is loaded via a deferred script on project pages.
+  // Give it a tick so window.mermaid exists.
+  setTimeout(() => { renderMermaid(); }, 0);
+
   if (toc && tocNav && tocContent) {
     const headings = Array.from(tocContent.querySelectorAll('h2, h3'))
       .filter((h) => (h.textContent || '').trim().length);

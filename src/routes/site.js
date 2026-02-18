@@ -94,45 +94,43 @@ siteRouter.post("/analytics/event", requireSiteAccess, (req, res) => {
   res.json({ ok: true });
 });
 
-function normalizeKind(kind) {
-  const k = (kind || "").toLowerCase();
-  if (["all", ""].includes(k)) return "all";
-  if (["writing", "post", "posts"].includes(k)) return "writing";
-  if (["components", "component"].includes(k)) return "component";
-  if (["ux", "case-study", "casestudy", "case studies"].includes(k)) return "ux";
-  if (["projects", "project"].includes(k)) return "project";
-  return "all";
-}
-
-function kindLabel(kind) {
-  if (kind === "project") return "Projects";
-  if (kind === "lab") return "Lab";
-  if (kind === "writing") return "Writing";
-  if (kind === "component") return "Components";
-  if (kind === "ux") return "UX";
-  return "Other";
+function loadOtherTopicCategories(db) {
+  return db
+    .prepare(
+      `select key, label, order_index
+       from other_topic_categories
+       order by order_index asc, label asc`
+    )
+    .all();
 }
 
 siteRouter.get("/", requireSiteAccess, (req, res) => {
-  try { trackHomeView(req); } catch {}
-  const db = getDb();
-  const activeTopic = normalizeKind(req.query.topic);
+  try {
+    trackHomeView(req);
+  } catch {}
 
-  const where =
-    activeTopic === "all"
-      ? "and kind in ('writing','component','ux')"
-      : "and kind=?";
+  const db = getDb();
+  const categories = loadOtherTopicCategories(db);
+  const requested = String(req.query.topic || "").toLowerCase();
+  const activeTopic = requested && categories.some((c) => c.key === requested) ? requested : "all";
+
+  const where = activeTopic === "all" ? "" : "and category=?";
   const params = activeTopic === "all" ? [] : [activeTopic];
 
   const items = db
     .prepare(
-      `select slug,title,subtitle,summary,tags,hero_image,kind,date,created_at
+      `select slug,title,subtitle,summary,tags,hero_image,kind,category,date,created_at
        from projects
-       where published=1 ${where}
+       where published=1 and kind='other' ${where}
        order by coalesce(date, created_at) desc`
     )
-    .all(...params)
-    .map((it) => ({ ...it, kindLabel: kindLabel(it.kind) }));
+    .all(...params);
+
+  const labelByKey = new Map(categories.map((c) => [c.key, c.label]));
+  const itemsWithLabel = items.map((it) => ({
+    ...it,
+    kindLabel: labelByKey.get(it.category) || "Other",
+  }));
 
   const work = db
     .prepare(
@@ -156,39 +154,23 @@ siteRouter.get("/", requireSiteAccess, (req, res) => {
 
   const counts = db
     .prepare(
-      `select kind, count(*) as c from projects where published=1 group by kind`
+      `select category, count(*) as c
+       from projects
+       where published=1 and kind='other'
+       group by category`
     )
     .all();
-  const countMap = new Map(counts.map((r) => [r.kind, r.c]));
-  const total = counts.reduce((acc, r) => acc + r.c, 0);
+  const countMap = new Map(counts.map((r) => [r.category || "", r.c]));
+  const total = counts.reduce((acc, r) => acc + (r.c || 0), 0);
 
   const topics = [
-    // Keep the user in the "Other topics" section when switching tabs.
     { key: "all", label: "All", count: total, href: "/?topic=all#topics" },
-    {
-      key: "ux",
-      label: "UX",
-      count: countMap.get("ux") || 0,
-      href: "/?topic=ux#topics",
-    },
-    {
-      key: "writing",
-      label: "Writing",
-      count: countMap.get("writing") || 0,
-      href: "/?topic=writing#topics",
-    },
-    {
-      key: "component",
-      label: "Components",
-      count: countMap.get("component") || 0,
-      href: "/?topic=component#topics",
-    },
-    {
-      key: "project",
-      label: "Projects",
-      count: countMap.get("project") || 0,
-      href: "/?topic=project#topics",
-    },
+    ...(categories || []).map((c) => ({
+      key: c.key,
+      label: c.label,
+      count: countMap.get(c.key) || 0,
+      href: `/?topic=${encodeURIComponent(c.key)}#topics`,
+    })),
   ];
 
   const baseUrl = (process.env.SITE_URL || "").replace(/\/$/, "");
@@ -198,7 +180,7 @@ siteRouter.get("/", requireSiteAccess, (req, res) => {
     meta: {
       title: "Callum Radmilovic — UI/UX Portfolio",
       description:
-        "UI/UX Product Designer in London. Calm SaaS for complex workflows — case studies, writing, components.",
+        "UI/UX Product Designer in London. Calm SaaS for complex workflows — case studies, blogs, components.",
       canonical,
       ogImage: baseUrl ? `${baseUrl}/public/avatar.jpg` : "/public/avatar.jpg",
     },
@@ -223,7 +205,7 @@ siteRouter.get("/", requireSiteAccess, (req, res) => {
     ],
     activeTopic,
     topics,
-    items,
+    items: itemsWithLabel,
     work,
     lab,
     timeline: [
@@ -258,86 +240,129 @@ siteRouter.get("/", requireSiteAccess, (req, res) => {
         ],
       },
       {
-        title: "Development",
+        title: "Research",
         items: [
-          { key: "vscode", label: "VS Code" },
-          { key: "github", label: "GitHub" },
-          { key: "ts", label: "TypeScript" },
-          { key: "antigravity", label: "Antigravity" },
+          { key: "interviews", label: "Interviews" },
+          { key: "heuristics", label: "Heuristics" },
+          { key: "testing", label: "Usability testing" },
         ],
       },
       {
-        title: "AI & Assistive Tools",
+        title: "Delivery",
         items: [
-          { key: "openclaw", label: "OpenClaw" },
-          { key: "chatgpt", label: "ChatGPT" },
+          { key: "handoff", label: "Handoff" },
+          { key: "docs", label: "Documentation" },
+          { key: "qa", label: "QA" },
         ],
       },
     ],
   });
 });
 
-function renderItem(req, res, item) {
-  const bodyHtml = renderMarkdown(item.body_markdown || "");
-
-  // Basic SEO meta
+siteRouter.get("/about", requireSiteAccess, (req, res) => {
   const baseUrl = (process.env.SITE_URL || "").replace(/\/$/, "");
-  const urlPath = item.kind === "project" || item.kind === "lab" ? `/project/${item.slug}` : `/item/${item.slug}`;
-  const canonical = baseUrl ? `${baseUrl}${urlPath}` : urlPath;
+  const canonical = baseUrl ? `${baseUrl}/about` : "/about";
 
-  const desc = (item.summary || item.subtitle || "").trim();
-  const ogImage = item.hero_image && baseUrl && item.hero_image.startsWith("/")
-    ? `${baseUrl}${item.hero_image}`
-    : (item.hero_image || "");
-
-  return res.render("project", {
-    name: "Callum Radmilovic",
-    item: { ...item, kindLabel: kindLabel(item.kind) },
-    bodyHtml,
+  res.render("about", {
     meta: {
-      title: `${item.title} — Callum Radmilovic`,
-      description: desc,
+      title: "About — Callum Radmilovic",
+      description: "Background, approach, and what I care about.",
       canonical,
-      ogImage,
+      ogImage: baseUrl ? `${baseUrl}/public/avatar.jpg` : "/public/avatar.jpg",
     },
   });
-}
+});
 
-// Projects / Work items
 siteRouter.get("/project/:slug", requireSiteAccess, (req, res) => {
-  try { trackItemView(req, req.params.slug); } catch {}
   const db = getDb();
+  const slug = String(req.params.slug || "");
+
+  const project = db
+    .prepare(
+      `select * from projects
+       where slug=? and kind in ('project','lab') and published=1
+       limit 1`
+    )
+    .get(slug);
+
+  if (!project) return res.status(404).render("404");
+
+  try {
+    trackItemView(req, { slug, kind: project.kind });
+  } catch {}
+
+  const html = renderMarkdown(String(project.body_markdown || ""));
+
+  const baseUrl = (process.env.SITE_URL || "").replace(/\/$/, "");
+  const canonical = baseUrl ? `${baseUrl}/project/${project.slug}` : `/project/${project.slug}`;
+
+  res.render("project", {
+    meta: {
+      title: `${project.title} — Callum Radmilovic`,
+      description: project.summary || "",
+      canonical,
+      ogImage: baseUrl
+        ? `${baseUrl}${project.hero_image || "/public/avatar.jpg"}`
+        : project.hero_image || "/public/avatar.jpg",
+    },
+    name: "Callum Radmilovic",
+    item: {
+      ...project,
+      kindLabel: project.kind === "lab" ? "Lab" : "Projects",
+    },
+    bodyHtml: html,
+  });
+});
+
+siteRouter.get("/item/:slug", requireSiteAccess, (req, res) => {
+  const db = getDb();
+  const slug = String(req.params.slug || "");
+
   const item = db
     .prepare(
-      "select * from projects where slug=? and published=1 and kind in ('project','lab')"
+      `select * from projects
+       where slug=? and published=1
+       limit 1`
     )
-    .get(req.params.slug);
-  if (!item) return res.status(404).render("404");
-  return renderItem(req, res, item);
-});
+    .get(slug);
 
-// Other topics item page (and back-compat)
-siteRouter.get("/item/:slug", requireSiteAccess, (req, res) => {
-  try { trackItemView(req, req.params.slug); } catch {}
-  const db = getDb();
-  const item = db
-    .prepare("select * from projects where slug=? and published=1")
-    .get(req.params.slug);
   if (!item) return res.status(404).render("404");
 
-  // Keep URLs consistent: work items should live under /project/
-  if (["project", "lab"].includes(item.kind)) {
-    return res.redirect(302, `/project/${encodeURIComponent(item.slug)}`);
-  }
+  try {
+    trackItemView(req, { slug, kind: item.kind });
+  } catch {}
 
-  return renderItem(req, res, item);
-});
+  const html = renderMarkdown(String(item.body_markdown || ""));
 
-siteRouter.get("/about", requireSiteAccess, (req, res) => {
-  res.render("about", { name: "Callum Radmilovic" });
-});
+  const baseUrl = (process.env.SITE_URL || "").replace(/\/$/, "");
+  const canonical = baseUrl
+    ? `${baseUrl}/${["project", "lab"].includes(item.kind) ? "project" : "item"}/${item.slug}`
+    : `/${["project", "lab"].includes(item.kind) ? "project" : "item"}/${item.slug}`;
 
-// Placeholder contact page (simple)
-siteRouter.get("/contact", requireSiteAccess, (req, res) => {
-  res.redirect(302, "mailto:you@example.com");
+  const categories = loadOtherTopicCategories(db);
+  const labelByKey = new Map(categories.map((c) => [c.key, c.label]));
+
+  res.render("project", {
+    meta: {
+      title: `${item.title} — Callum Radmilovic`,
+      description: item.summary || "",
+      canonical,
+      ogImage: baseUrl
+        ? `${baseUrl}${item.hero_image || "/public/avatar.jpg"}`
+        : item.hero_image || "/public/avatar.jpg",
+    },
+    name: "Callum Radmilovic",
+    item: {
+      ...item,
+      kindLabel:
+        item.kind === "lab"
+          ? "Lab"
+          : item.kind === "project"
+            ? "Projects"
+            : item.kind === "other"
+              ? (labelByKey.get(item.category) || "Other")
+              : "Other",
+    },
+    bodyHtml: html,
+  });
 });
