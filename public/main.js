@@ -157,6 +157,48 @@
       const wrap = document.createElement('div');
       wrap.className = 'spDiagram';
 
+      // Toolbar
+      const tb = document.createElement('div');
+      tb.className = 'spDiagramToolbar';
+
+      const tools = document.createElement('div');
+      tools.className = 'spDiagramTools';
+
+      const hint = document.createElement('div');
+      hint.className = 'spDiagramHint';
+      hint.textContent = 'Zoom: 100% • Scroll to pan';
+
+      const mkBtn = (title, svg) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'spIconBtn';
+        b.setAttribute('aria-label', title);
+        b.setAttribute('title', title);
+        b.innerHTML = svg;
+        return b;
+      };
+
+      const ico = {
+        plus: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>`,
+        minus: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M5 11h14v2H5z"/></svg>`,
+        reset: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5a5 5 0 1 1-9.9-1h-2.1A7 7 0 1 0 12 6z"/></svg>`,
+        full: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm0-4h3V7h2v5H7V10zm10 7h-3v2h5v-5h-2v3zm0-10V5h-5v2h3v3h2z"/></svg>`,
+      };
+
+      const bZoomIn = mkBtn('Zoom in', ico.plus);
+      const bZoomOut = mkBtn('Zoom out', ico.minus);
+      const bReset = mkBtn('Reset zoom', ico.reset);
+      const bFull = mkBtn('Fullscreen', ico.full);
+
+      tools.appendChild(bZoomIn);
+      tools.appendChild(bZoomOut);
+      tools.appendChild(bReset);
+      tools.appendChild(bFull);
+
+      tb.appendChild(tools);
+      tb.appendChild(hint);
+      wrap.appendChild(tb);
+
       const scroll = document.createElement('div');
       scroll.className = 'spDiagramScroll';
       wrap.appendChild(scroll);
@@ -165,15 +207,55 @@
 
       const id = `mmd-${Date.now()}-${idx}`;
 
+      // zoom state
+      let scale = 1;
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const applyZoom = (next) => {
+        scale = clamp(next, 0.5, 2.5);
+        const vp = scroll.querySelector('.spDiagramViewport');
+        if (vp) vp.style.transform = `scale(${scale})`;
+        hint.textContent = `Zoom: ${Math.round(scale * 100)}% • Scroll to pan`;
+      };
+
+      bZoomIn.addEventListener('click', () => applyZoom(scale + 0.15));
+      bZoomOut.addEventListener('click', () => applyZoom(scale - 0.15));
+      bReset.addEventListener('click', () => applyZoom(1));
+
+      bFull.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+            return;
+          }
+          await wrap.requestFullscreen();
+        } catch (e) {
+          console.warn('fullscreen failed', e);
+        }
+      });
+
+      // ctrl/cmd + wheel zoom
+      scroll.addEventListener('wheel', (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        e.preventDefault();
+        const dir = e.deltaY > 0 ? -1 : 1;
+        applyZoom(scale + dir * 0.08);
+      }, { passive: false });
+
       try {
         const out = await mermaid.render(id, src);
         const svg = out?.svg || '';
         if (!svg) throw new Error('empty svg');
-        scroll.innerHTML = svg;
+
+        const viewport = document.createElement('div');
+        viewport.className = 'spDiagramViewport';
+        viewport.innerHTML = svg;
+        scroll.innerHTML = '';
+        scroll.appendChild(viewport);
+
+        applyZoom(1);
       } catch (e) {
         const msg = (e && (e.message || String(e))) ? (e.message || String(e)) : 'unknown error';
         scroll.innerHTML = `<div class="muted">Diagram failed to render: ${String(msg).replace(/</g,'&lt;')}</div>`;
-        // also log to console for debugging
         try { console.warn('mermaid render failed', e, { src }); } catch {}
       }
     }
@@ -182,6 +264,213 @@
   // Mermaid is loaded via a deferred script on project pages.
   // Give it a tick so window.mermaid exists.
   setTimeout(() => { renderMermaid(); }, 0);
+
+  // --- Image lightbox (click to expand + zoom) ---
+  const setupImageLightbox = () => {
+    const scope = document.querySelector('article.content') || document;
+    const imgs = Array.from(scope.querySelectorAll('img'))
+      .filter((img) => !img.classList.contains('hero-img'));
+
+    if (!imgs.length) return;
+
+    // Create lightbox once
+    let lb = document.querySelector('.imgLightbox');
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.className = 'imgLightbox';
+      lb.innerHTML = `
+        <div class="imgLightboxBackdrop" data-lb-close></div>
+        <div class="imgLightboxPanel" role="dialog" aria-modal="true" aria-label="Image preview">
+          <div class="imgLightboxToolbar">
+            <div class="imgLightboxTools">
+              <button type="button" class="spIconBtn" data-lb-zoom-out aria-label="Zoom out" title="Zoom out">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M5 11h14v2H5z"/></svg>
+              </button>
+              <button type="button" class="spIconBtn" data-lb-zoom-in aria-label="Zoom in" title="Zoom in">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>
+              </button>
+              <button type="button" class="spIconBtn" data-lb-reset aria-label="Reset" title="Reset">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5a5 5 0 1 1-9.9-1h-2.1A7 7 0 1 0 12 6z"/></svg>
+              </button>
+            </div>
+            <div class="imgLightboxHint" data-lb-hint>Zoom 100%</div>
+            <button type="button" class="spIconBtn" data-lb-close aria-label="Close" title="Close">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z"/></svg>
+            </button>
+          </div>
+          <div class="imgLightboxStage" data-lb-stage>
+            <img class="imgLightboxImg" alt="" />
+          </div>
+        </div>
+      `;
+      document.body.appendChild(lb);
+    }
+
+    const imgEl = lb.querySelector('.imgLightboxImg');
+    const hintEl = lb.querySelector('[data-lb-hint]');
+    const stage = lb.querySelector('[data-lb-stage]');
+
+    let scale = 1;
+    let tx = 0;
+    let ty = 0;
+    let isDown = false;
+    let sx = 0;
+    let sy = 0;
+
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    const apply = () => {
+      imgEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      if (hintEl) hintEl.textContent = `Zoom ${Math.round(scale * 100)}%`;
+      stage?.classList.toggle('isZoomed', scale > 1.01);
+    };
+
+    const reset = () => {
+      scale = 1;
+      tx = 0;
+      ty = 0;
+      apply();
+    };
+
+    const open = (img) => {
+      const src = img.getAttribute('src');
+      if (!src) return;
+
+      imgEl.setAttribute('src', src);
+      imgEl.setAttribute('alt', img.getAttribute('alt') || '');
+      reset();
+
+      lb.classList.add('open');
+      document.documentElement.classList.add('lbOpen');
+    };
+
+    const close = () => {
+      lb.classList.remove('open');
+      document.documentElement.classList.remove('lbOpen');
+    };
+
+    // Wire toolbar
+    lb.querySelector('[data-lb-close]')?.addEventListener('click', close);
+    lb.querySelector('[data-lb-zoom-in]')?.addEventListener('click', () => {
+      scale = clamp(scale + 0.2, 1, 4);
+      apply();
+    });
+    lb.querySelector('[data-lb-zoom-out]')?.addEventListener('click', () => {
+      scale = clamp(scale - 0.2, 1, 4);
+      if (scale <= 1.01) { tx = 0; ty = 0; }
+      apply();
+    });
+    lb.querySelector('[data-lb-reset]')?.addEventListener('click', reset);
+
+    // Esc closes
+    window.addEventListener('keydown', (e) => {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') close();
+    });
+
+    // Drag to pan when zoomed
+    stage?.addEventListener('pointerdown', (e) => {
+      if (!lb.classList.contains('open')) return;
+      if (scale <= 1.01) return;
+      isDown = true;
+      sx = e.clientX - tx;
+      sy = e.clientY - ty;
+      stage.setPointerCapture?.(e.pointerId);
+      stage.classList.add('dragging');
+    });
+    stage?.addEventListener('pointermove', (e) => {
+      if (!isDown) return;
+      tx = e.clientX - sx;
+      ty = e.clientY - sy;
+      apply();
+    });
+    stage?.addEventListener('pointerup', () => {
+      isDown = false;
+      stage?.classList.remove('dragging');
+    });
+
+    // Wheel zoom
+    stage?.addEventListener('wheel', (e) => {
+      if (!lb.classList.contains('open')) return;
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.12 : 0.12;
+      scale = clamp(scale + delta, 1, 4);
+      if (scale <= 1.01) { tx = 0; ty = 0; }
+      apply();
+    }, { passive: false });
+
+    // Make images clickable
+    for (const img of imgs) {
+      if (img.closest('a')) continue; // respect linked images
+      img.classList.add('lbTarget');
+      img.style.cursor = 'zoom-in';
+      img.addEventListener('click', () => open(img));
+    }
+  };
+
+  setupImageLightbox();
+
+  // --- Before/After slider ---
+  const setupBeforeAfter = () => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const sliders = Array.from(document.querySelectorAll('.ba'));
+    if (!sliders.length) return;
+
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    const setPos = (root, ratio) => {
+      const r = clamp(ratio, 0, 1);
+      root.style.setProperty('--ba', `${r * 100}%`);
+      root.setAttribute('data-ba', String(Math.round(r * 100)));
+    };
+
+    const getRatioFromEvent = (root, e) => {
+      const media = root.querySelector('.ba-media') || root;
+      const rect = media.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      return clamp(x, 0, 1);
+    };
+
+    for (const root of sliders) {
+      const handle = root.querySelector('.ba-handle');
+      if (!handle) continue;
+
+      // default position
+      const initial = Number(root.getAttribute('data-initial') || '50') / 100;
+      setPos(root, isFinite(initial) ? initial : 0.5);
+
+      if (reduce) continue;
+
+      let down = false;
+
+      const onDown = (e) => {
+        down = true;
+        handle.setPointerCapture?.(e.pointerId);
+        setPos(root, getRatioFromEvent(root, e));
+      };
+      const onMove = (e) => {
+        if (!down) return;
+        setPos(root, getRatioFromEvent(root, e));
+      };
+      const onUp = () => {
+        down = false;
+      };
+
+      handle.addEventListener('pointerdown', onDown);
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+      handle.addEventListener('pointercancel', onUp);
+
+      // Click anywhere on the slider jumps the handle
+      root.addEventListener('click', (e) => {
+        // avoid double-trigger when dragging
+        if (down) return;
+        setPos(root, getRatioFromEvent(root, e));
+      });
+    }
+  };
+
+  setupBeforeAfter();
 
   if (toc && tocNav && tocContent) {
     const headings = Array.from(tocContent.querySelectorAll('h2, h3'))
@@ -251,6 +540,47 @@
       toc.style.display = 'none';
     }
   }
+
+  // --- Design system widgets ---
+  const setupButtonPlaygrounds = () => {
+    const roots = Array.from(document.querySelectorAll('[data-ds-button-playground]'));
+    roots.forEach((root) => {
+      const selVariant = root.querySelector('[data-ds-variant]');
+      const selState = root.querySelector('[data-ds-state]');
+      const selSize = root.querySelector('[data-ds-size]');
+      const selKind = root.querySelector('[data-ds-kind]');
+      const btn = root.querySelector('button.dsBtn');
+      const hint = root.querySelector('[data-ds-hint]');
+
+      if (!selVariant || !selState || !selSize || !selKind || !btn) return;
+
+      const apply = () => {
+        const variant = selVariant.value;
+        const state = selState.value;
+        const size = selSize.value;
+        const kind = selKind.value;
+
+        btn.setAttribute('data-variant', variant);
+        btn.setAttribute('data-state', state);
+        btn.setAttribute('data-size', size);
+        btn.setAttribute('data-kind', kind);
+
+        const disabled = state === 'disabled';
+        btn.disabled = disabled;
+
+        // Keep hint tidy
+        if (hint) hint.textContent = `${variant} · ${kind} · ${state} · ${size}`;
+      };
+
+      selVariant.addEventListener('change', apply);
+      selKind.addEventListener('change', apply);
+      selState.addEventListener('change', apply);
+      selSize.addEventListener('change', apply);
+      apply();
+    });
+  };
+
+  setupButtonPlaygrounds();
 
   // --- Lightweight analytics (beacon) ---
   const sendEvent = (payload) => {
