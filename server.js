@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import helmet from "helmet";
 import compression from "compression";
+import fs from "fs";
 
 import { initDb } from "./src/db.js";
 import { requireAuth, authRouter } from "./src/auth.js";
@@ -16,6 +17,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Cache-busting for /public assets. In production we set a long maxAge,
+// so we append a stable version string derived from the current git commit.
+const getAssetVersion = () => {
+  try {
+    const headPath = path.join(__dirname, ".git", "HEAD");
+    const head = fs.readFileSync(headPath, "utf8").trim();
+    if (head.startsWith("ref:")) {
+      const ref = head.replace(/^ref:\s+/, "").trim();
+      const refPath = path.join(__dirname, ".git", ref);
+      return fs.readFileSync(refPath, "utf8").trim().slice(0, 12);
+    }
+    return head.slice(0, 12);
+  } catch {
+    return String(Date.now());
+  }
+};
+app.locals.assetVersion = process.env.ASSET_VERSION || getAssetVersion();
 
 app.use(helmet({
   contentSecurityPolicy: false, // keep simple for now; tighten later

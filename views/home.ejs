@@ -13,8 +13,8 @@
   <% if (m && m.canonical) { %><meta property="og:url" content="<%= m.canonical %>" /><% } %>
   <% if (m && m.ogImage) { %><meta property="og:image" content="<%= m.ogImage %>" /><% } %>
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="stylesheet" href="/public/styles.css" />
-  <script defer src="/public/main.js"></script>
+  <link rel="stylesheet" href="/public/styles.css?v=<%= assetVersion %>" />
+  <script defer src="/public/main.js?v=<%= assetVersion %>"></script>
 </head>
 <body>
   <div class="container narrow dock-wrap">
